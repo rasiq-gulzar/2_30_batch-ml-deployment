@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Prediction</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { display: flex; justify-content: space-around; }
+        .column { width: 45%; }
+        input[type="number"] { width: 100%; padding: 8px; margin: 10px 0; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Machine Learning Prediction using Simple Linear Regression</h1>
+    <form method="post" action="#">
+        
+        <div class="container">
+            <div class="column">
+                <label for="feature1">House Size:</label>
+                <input type="number" id="feature1" name="house_size" required>
+            </div>
+    
+        </div>
+        <button type="submit">Predict</button>
+    </form>
+   
+        <div class="result">
+            <h2>Prediction Result: {{ prediction }}</h2>
+        </div>
+  
+</body>
+</html>
