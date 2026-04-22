@@ -1,5 +1,5 @@
-#first create the virutual environment 
-#activate the virtual environment
+#first create the virutual environment  command is = python -m venv name_of_virtutal_environment
+#activate the virtual environment= see the root folder of venv to activate the scripts....
 #make app.py
 #install the required packages
 from flask import Flask, render_template, request
