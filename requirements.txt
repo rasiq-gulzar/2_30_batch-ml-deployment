@@ -1,6 +1,3 @@
 flask
-scikit-learn
-pickle
 numpy
-pandas
-matplotlib
+scikit-learn

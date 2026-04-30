@@ -3,34 +3,488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Prediction</title>
+    <title>HouseVal — Price Prediction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { display: flex; justify-content: space-around; }
-        .column { width: 45%; }
-        input[type="number"] { width: 100%; padding: 8px; margin: 10px 0; }
-        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        .result { margin-top: 20px; }
+        :root {
+            --bg: #0d0f14;
+            --surface: #14171f;
+            --surface-2: #1c2030;
+            --border: rgba(255,255,255,0.07);
+            --accent: #c8a96e;
+            --accent-dim: rgba(200,169,110,0.15);
+            --accent-glow: rgba(200,169,110,0.35);
+            --text-primary: #f0ece4;
+            --text-secondary: #8a8fa8;
+            --text-muted: #4a4f65;
+            --green: #5ec98a;
+            --green-dim: rgba(94,201,138,0.12);
+            --red: #e05c6e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        /* Background mesh */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 80% 20%, rgba(200,169,110,0.06) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 10% 80%, rgba(94,201,138,0.04) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 36px;
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(200,169,110,0.25);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s ease infinite;
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 36px;
+            line-height: 1.15;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            animation: fadeUp 0.7s 0.1s ease both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(200,169,110,0.4), transparent);
+        }
+
+        /* Form sections */
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .field-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .field {
+            position: relative;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .field-unit {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 40px 12px 36px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+        input[type="number"]:focus {
+            border-color: rgba(200,169,110,0.5);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+            background: #1a1e2a;
+        }
+
+        input[type="number"]::placeholder { color: var(--text-muted); font-weight: 400; }
+
+        /* Full-width field */
+        .field-full { margin-bottom: 14px; }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 24px 0;
+        }
+
+        /* Submit */
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: var(--accent);
+            color: #0d0f14;
+            border: none;
+            border-radius: 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button[type="submit"]::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+        }
+
+        button[type="submit"]:hover {
+            opacity: 0.92;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        .btn-inner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        /* Result */
+        .result-card {
+            margin-top: 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+
+        .result-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .result-body {
+            padding: 24px 20px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .result-value {
+            font-family: 'DM Serif Display', serif;
+            font-size: 42px;
+            color: var(--accent);
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+
+        .result-value.empty {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .result-note {
+            margin-top: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Info strip */
+        .info-strip {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            border-top: 1px solid var(--border);
+        }
+
+        .info-item {
+            padding: 14px 16px;
+            text-align: center;
+            border-right: 1px solid var(--border);
+        }
+
+        .info-item:last-child { border-right: none; }
+
+        .info-item-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .info-item-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            animation: fadeUp 0.7s 0.3s ease both;
+        }
+
+        .footer span { color: var(--text-secondary); }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            h1 { font-size: 28px; }
+            .card { padding: 22px 18px; }
+            .field-group { grid-template-columns: 1fr; }
+            .result-value { font-size: 34px; }
+        }
     </style>
 </head>
 <body>
-    <h1>Machine Learning Prediction using Simple Linear Regression</h1>
-    <form method="post" action="#">
-        
-        <div class="container">
-            <div class="column">
-                <label for="feature1">House Size:</label>
-                <input type="number" id="feature1" name="house_size" required>
+
+    <div class="wrapper">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="badge">
+                <span class="badge-dot"></span>
+                ML Prediction Engine
             </div>
-    
+            <h1>House Price<br><em>Estimator</em></h1>
+            <p class="subtitle">Enter property details below. Our multiple linear regression model will predict the estimated market value instantly.</p>
         </div>
-        <button type="submit">Predict</button>
-    </form>
-   
-        <div class="result">
-            <h2>Prediction Result: {{ prediction }}</h2>
+
+        <!-- Form Card -->
+        <div class="card">
+            <p class="section-label">Property Details</p>
+
+            <form action="#" method="post">
+
+                <div class="field-group">
+                    <div class="field">
+                        <label for="sqfts">Floor Area</label>
+                        <div class="input-wrap">
+                            <span class="input-icon">⬛</span>
+                            <input
+                                type="number"
+                                id="sqfts"
+                                name="sqfts"
+                                placeholder="e.g. 2400"
+                                min="100"
+                                max="100000"
+                                step="1"
+                                required
+                            >
+                            <span class="field-unit">SQ FT</span>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="rooms">No. of Rooms</label>
+                        <div class="input-wrap">
+                            <span class="input-icon">🚪</span>
+                            <input
+                                type="number"
+                                id="rooms"
+                                name="rooms"
+                                placeholder="e.g. 4"
+                                min="1"
+                                max="50"
+                                step="1"
+                                required
+                            >
+                            <span class="field-unit">RMS</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <button type="submit">
+                    <span class="btn-inner">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Predict Market Value
+                    </span>
+                </button>
+            </form>
         </div>
-  
+
+        <!-- Result Card -->
+        <div class="result-card">
+            <div class="result-header">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Prediction Output
+            </div>
+
+            <div class="result-body">
+                    <p class="result-label">Estimated Market Value</p>
+                    <div class="result-value">{{ result }}</div>
+                    <p class="result-note">Based on square footage &amp; room count · MLR model</p>
+                    <div class="result-value empty">Awaiting prediction…</div>
+                    <p class="result-note">Submit property details above to see the estimate</p>
+            </div>
+
+            <div class="info-strip">
+                <div class="info-item">
+                    <div class="info-item-label">Model</div>
+                    <div class="info-item-value">MLR</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label">Features</div>
+                    <div class="info-item-value">2</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-item-label">Output</div>
+                    <div class="info-item-value">Price</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Powered by <span>Multiple Linear Regression</span> · For demonstration purposes
+        </div>
+
+    </div>
+
 </body>
 </html>
